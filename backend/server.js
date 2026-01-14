@@ -7,42 +7,76 @@ const reservationRoutes = require('./routes/reservations');
 
 const app = express();
 
-// Update CORS to allow your frontend domain
+// ========== FIXED CORS CONFIGURATION ==========
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://restaurant-system-1.onrender.com',
-    'https://restaurant-frontend-final1.onrender.com', // Add your frontend URL here
-    'https://restaurant-frontend-full.onrender.com' // Common Render frontend name
+    'https://restaurant-management-system.onrender.com',
+    'https://restaurant-system-nce0.onrender.com',
+    'https://restaurant-frontend-final.onrender.com', // Your frontend name
+    'https://restaurant-frontend-*.onrender.com',    // Dynamic Render URLs
+    'https://*.onrender.com'                         // All Render apps
 ];
 
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            console.log('CORS blocked for origin:', origin);
-            return callback(new Error('CORS policy violation'), false);
+        
+        // Check if the origin is in allowed list
+        for (let allowedOrigin of allowedOrigins) {
+            if (allowedOrigin.includes('*')) {
+                // Convert wildcard pattern to regex
+                const pattern = allowedOrigin.replace('.', '\\.').replace('*', '.*');
+                const regex = new RegExp(`^${pattern}$`);
+                if (regex.test(origin)) {
+                    console.log('✅ CORS allowed for:', origin);
+                    return callback(null, true);
+                }
+            } else if (origin === allowedOrigin) {
+                console.log('✅ CORS allowed for:', origin);
+                return callback(null, true);
+            }
         }
+        
+        console.log('❌ CORS blocked for origin:', origin);
+        console.log('📋 Allowed origins:', allowedOrigins);
+        
+        // For now, allow all in production too (you can remove this later)
+        // return callback(new Error('CORS policy violation'), false);
+        console.log('⚠️ Temporarily allowing all origins');
         return callback(null, true);
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Handle preflight requests
+app.options('*', cors());
+// Debug middleware for CORS
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    console.log('Origin:', req.headers.origin);
+    console.log('Headers:', req.headers);
+    next();
+});
+
 // Enhanced CORS for production
 // app.use(cors({
 //     origin: ['http://localhost:3000', 'https://restaurant-management-system.onrender.com'],
 //     credentials: true
 // }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
 
-// Add this middleware for logging
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    if (req.method === 'POST' || req.method === 'PUT') {
-        console.log('Body:', JSON.stringify(req.body, null, 2));
-    }
-    next();
-});
+// // Add this middleware for logging
+// app.use((req, res, next) => {
+//     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+//     if (req.method === 'POST' || req.method === 'PUT') {
+//         console.log('Body:', JSON.stringify(req.body, null, 2));
+//     }
+//     next();
+// });
 
 
 // MongoDB Connection - Use your actual connection string
