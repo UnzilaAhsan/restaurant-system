@@ -7,11 +7,31 @@ const reservationRoutes = require('./routes/reservations');
 
 const app = express();
 
-// Enhanced CORS for production
+// Update CORS to allow your frontend domain
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://restaurant-management-system.onrender.com',
+    'https://restaurant-frontend-final1.onrender.com', // Add your frontend URL here
+    'https://restaurant-frontend-full.onrender.com' // Common Render frontend name
+];
+
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://restaurant-management-system.onrender.com'],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            console.log('CORS blocked for origin:', origin);
+            return callback(new Error('CORS policy violation'), false);
+        }
+        return callback(null, true);
+    },
     credentials: true
 }));
+// Enhanced CORS for production
+// app.use(cors({
+//     origin: ['http://localhost:3000', 'https://restaurant-management-system.onrender.com'],
+//     credentials: true
+// }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
