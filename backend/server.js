@@ -1173,21 +1173,7 @@ app.get('/api/test/db', async (req, res) => {
 //         res.sendFile(path.resolve(__dirname, '../frontend/build', 'index.html'));
 //     });
 // }
-app.get('/', (req, res) => {
-    res.json({ 
-        message: 'Restaurant Management API is running!',
-        version: '2.0.0',
-        endpoints: {
-            auth: '/api/auth',
-            tables: '/api/tables',
-            reservations: '/api/reservations',
-            staff: '/api/staff',
-            analytics: '/api/analytics',
-            dashboard: '/api/dashboard',
-            demo_data: '/api/create-demo-data'
-        }
-    });
-});
+
 // ========== ERROR HANDLING ==========
 app.use((req, res, next) => {
     res.status(404).json({
