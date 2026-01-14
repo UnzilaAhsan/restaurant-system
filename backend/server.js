@@ -10,7 +10,7 @@ const app = express();
 // Update CORS to allow your frontend domain
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://restaurant-management-system.onrender.com',
+    'https://restaurant-system-1.onrender.com',
     'https://restaurant-frontend-final1.onrender.com', // Add your frontend URL here
     'https://restaurant-frontend-full.onrender.com' // Common Render frontend name
 ];
