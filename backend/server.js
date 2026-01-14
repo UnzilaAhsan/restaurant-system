@@ -122,6 +122,81 @@ const User = require('./models/User');
 const Table = require('./models/Table');
 const Reservation = require('./models/Reservation');
 
+// ========== MAIN ROOT ENDPOINT ==========
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'Restaurant Management API is running!',
+        version: '2.0.0',
+        documentation: 'Visit /api for all available endpoints',
+        endpoints: {
+            api_root: '/api',
+            auth: '/api/auth',
+            tables: '/api/tables',
+            reservations: '/api/reservations',
+            staff: '/api/staff',
+            analytics: '/api/analytics',
+            dashboard: '/api/dashboard',
+            demo_data: '/api/create-demo-data',
+            health_check: '/api/health'
+        },
+        quick_start: {
+            create_demo_data: 'GET /api/create-demo-data',
+            test_login: 'POST /api/auth/login with {email: "admin@example.com", password: "password123"}',
+            view_tables: 'GET /api/tables',
+            view_reservations: 'GET /api/reservations'
+        }
+    });
+});
+
+// ========== API ROOT ENDPOINT ==========
+app.get('/api', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Restaurant Management API',
+        version: '2.0.0',
+        documentation: 'API endpoints for restaurant management system',
+        endpoints: {
+            auth: {
+                root: '/api/auth',
+                login: '/api/auth/login',
+                register: '/api/auth/register',
+                current_user: '/api/auth/me'
+            },
+            tables: {
+                root: '/api/tables',
+                available: '/api/tables/available',
+                update_by_number: '/api/tables/number/:tableNumber'
+            },
+            reservations: {
+                root: '/api/reservations',
+                update_status: '/api/reservations/:id/status'
+            },
+            staff: '/api/staff',
+            analytics: '/api/analytics',
+            dashboard: {
+                root: '/api/dashboard',
+                stats: '/api/dashboard/stats'
+            },
+            demo: '/api/create-demo-data',
+            health: '/api/health',
+            debug: {
+                reservations: '/api/debug/reservations',
+                status: '/api/debug/status',
+                db_test: '/api/test/db'
+            }
+        },
+        database: {
+            connected: mongoose.connection.readyState === 1,
+            name: mongoose.connection.name,
+            host: mongoose.connection.host
+        },
+        server: {
+            environment: process.env.NODE_ENV || 'development',
+            uptime: process.uptime(),
+            timestamp: new Date().toISOString()
+        }
+    });
+});
 // Test endpoint to check database connection
 app.get('/api/test-db', async (req, res) => {
     try {
@@ -152,6 +227,67 @@ app.get('/api/test-db', async (req, res) => {
 });
 
 // ========== AUTH ROUTES ==========
+// Main auth endpoint
+app.get('/api/auth', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Authentication API',
+        version: '2.0.0',
+        endpoints: {
+            login: '/api/auth/login [POST]',
+            register: '/api/auth/register [POST]',
+            current_user: '/api/auth/me [GET]',
+            logout: '/api/auth/logout [POST]'
+        },
+        required_fields: {
+            login: { email: 'string', password: 'string' },
+            register: { username: 'string', email: 'string', password: 'string', role: 'string (optional)' }
+        }
+    });
+});
+
+// Already have these, but adding for completeness:
+// Add current user endpoint
+app.get('/api/auth/me', async (req, res) => {
+    try {
+        // In production, you would verify JWT token
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        
+        if (!token || !token.startsWith('token-')) {
+            return res.status(401).json({
+                success: false,
+                message: 'No valid token provided'
+            });
+        }
+        
+        // For demo, we'll just return a dummy response
+        // In real app, you would decode token and fetch user from DB
+        res.json({
+            success: true,
+            user: {
+                _id: 'demo-user-id',
+                username: 'demo',
+                email: 'demo@example.com',
+                role: 'admin'
+            },
+            message: 'User info retrieved (demo mode)'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// Add logout endpoint
+app.post('/api/auth/logout', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Logged out successfully'
+    });
+});
+
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { username, email, password, role } = req.body;
@@ -726,6 +862,22 @@ app.get('/api/analytics', async (req, res) => {
 });
 
 // ========== DASHBOARD ROUTES ==========
+// ========== DASHBOARD ROUTES ==========
+// Main dashboard endpoint
+app.get('/api/dashboard', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Dashboard API',
+        version: '2.0.0',
+        endpoints: {
+            stats: '/api/dashboard/stats',
+            analytics: '/api/analytics',
+            recent_reservations: '/api/reservations?limit=10'
+        },
+        documentation: 'Use /api/dashboard/stats for dashboard statistics'
+    });
+});
+
 app.get('/api/dashboard/stats', async (req, res) => {
     try {
         const totalTables = await Table.countDocuments();
